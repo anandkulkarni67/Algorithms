@@ -1,17 +1,18 @@
 #include<stdio.h>
-#include<string.h>
-#define NO_NODES 5
+#include<stdlib.h>
+#include <string.h>
+
 
 /*
 	This method is used to display the contents of 2D array.
 */
 void
-display_array(int W[NO_NODES][NO_NODES]){
+display_array(int size, int W[][size]){
 	int i = 0;
 	int j = 0;
-	for(i=0;i<NO_NODES; i++){
+	for(i=0;i<size; i++){
 		printf("\n");
-		for(j=0; j<NO_NODES; j++){
+		for(j=0; j<size; j++){
 			printf("%d ", W[i][j]);
 		}
 	}
@@ -21,11 +22,11 @@ display_array(int W[NO_NODES][NO_NODES]){
 	This method copies all elements from one array to another.
 */
 void
-copy_array(int W[NO_NODES][NO_NODES], int D[NO_NODES][NO_NODES]){
+copy_array(int size, int W[][size], int D[][size]){
 	int i = 1;
 	int j = 1;
-	for(i=0;i<NO_NODES; i++){
-		for(j=0; j<NO_NODES; j++){
+	for(i=0;i<size; i++){
+		for(j=0; j<size; j++){
 			D[i][j] = W[i][j];
 		}
 	}
@@ -35,11 +36,11 @@ copy_array(int W[NO_NODES][NO_NODES], int D[NO_NODES][NO_NODES]){
 	Initialize all elements of an array to 0.
 */
 void
-initialize_array(int W[NO_NODES][NO_NODES]){
+initialize_array(int size, int W[][size]){
 	int i = 1;
 	int j = 1;
-	for(i=0;i<NO_NODES; i++){
-		for(j=0; j<NO_NODES; j++){
+	for(i=0;i<size; i++){
+		for(j=0; j<size; j++){
 			W[i][j] = -1;
 		}
 	}
@@ -48,22 +49,22 @@ initialize_array(int W[NO_NODES][NO_NODES]){
 /*
 	This method is used to find and display shortest path between two nodes.
 */
-void path(int P[NO_NODES][NO_NODES],int q,int r){
+void path(int size, int P[][size],int q,int r){
 	if (P[q][r]!=-1){
-	             path(P, q, P[q][r]);
+	             path(size, P, q, P[q][r]);
 	             printf(" v%d ", P[q][r] + 1);
-	             path(P, P[q][r], r);
+	             path(size, P, P[q][r], r);
 	}
 }
 
 void
 floyd_algorithm(int size, int W[][size], int D[][size], int P[][size]){
 	int i= 0, j = 0, k = 0;
-	copy_array(W, D);
-	initialize_array(P);	
-	for(k = 0; k<NO_NODES; k++){
-		for(i = 0; i<NO_NODES; i++){
-			for(j = 0; j<NO_NODES; j++){
+	copy_array(size, W, D);
+	initialize_array(size, P);	
+	for(k = 0; k<size; k++){
+		for(i = 0; i<size; i++){
+			for(j = 0; j<size; j++){
 				if(D[i][j] > (D[i][k] + D[k][j])){
 					D[i][j] = (D[i][k] + D[k][j]);
 					P[i][j] = k;
@@ -73,17 +74,72 @@ floyd_algorithm(int size, int W[][size], int D[][size], int P[][size]){
 	}
 }
 
-int main(){
+int
+get_no_nodes(FILE *fp){
+	int count = 0;
+	char ch;
+	while(!feof(fp))
+	{
+	  ch = fgetc(fp);
+	  if(ch == '\n')
+	  {
+	    count++;
+	  }
+	}
+	return count;
+}
+
+void
+read_W_matrix(char *filename, int size, int W[][size]){
+	char *pt, *line;
+	size_t len = 0;
+	ssize_t read;
+	int i = 0, j = 0;
+	FILE *fp = fopen(filename, "r");
+	initialize_array(size, W);
+	while ((read = getline(&line, &len, fp)) != -1) {
+		pt = strtok (line,",");
+		j = 0;
+		while (pt != NULL) {
+			int a = atoi(pt);
+			W[i][j] = a;	
+			j++;
+			pt = strtok (NULL, ",");
+		}
+		i++;
+    	}	
+	fclose(fp);
+}
+
+int main(int argv,char **argc){
 	int infinity = 500;
-	int i= 0, j = 0, k = 0,v1 = 0, v2 = 0, no_nodes = 5;
+	int i= 0, j = 0, k = 0,v1 = 0, v2 = 0, no_nodes = 0;
 	char choice;
-	int W[NO_NODES][NO_NODES] = {{0, 1, infinity, 1, 5}, {9, 0, 3, 2, infinity}, {infinity, infinity, 0, 4, infinity}, {infinity, infinity, 2, 0, 3}, {3, infinity, infinity, infinity, 0}};
-	int D[NO_NODES][NO_NODES];
-	int P[NO_NODES][NO_NODES];
-	floyd_algorithm(NO_NODES, W, D, P);
-	display_array(D);
+	if(argv != 2){
+		printf("\n\n Please enter valid number of arguments !!");
+		printf("\n\n");
+		return 0;
+	}	
+	FILE *fp = fopen(argc[1],"r");
+	if(fp == NULL){
+		printf("\n\n File not found !!");
+		printf("\n\n");
+		return 0;
+	}
+	no_nodes = get_no_nodes(fp);
+	if(no_nodes == 0) {
+		printf("\n\n File is empty or file could no be read !!");
+		printf("\n\n");
+		return 0;
+	}
+	int W[no_nodes][no_nodes];
+	int D[no_nodes][no_nodes];
+	int P[no_nodes][no_nodes];
+	read_W_matrix(argc[1], no_nodes, W);
+	floyd_algorithm(no_nodes, W, D, P);
+	display_array(no_nodes, D);
 	printf("\n");
-	display_array(P);
+	display_array(no_nodes, P);
 	printf("\n");
 	do{
 		printf("\n\nPlease enter starting vertex (1...N) : ");
@@ -97,7 +153,7 @@ int main(){
 		}else{
 			printf("\nShortest path between v%d and v%d is : ", v1, v2);
 			printf(" v%d ", v1);
-			path(P, (v1 - 1), (v2 - 1));
+			path(no_nodes, P, (v1 - 1), (v2 - 1));
 			printf(" v%d ", v2);
 		}
 		printf("\n\nDo you want to continue (y/n) ? : ");	
