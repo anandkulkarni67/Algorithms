@@ -145,6 +145,9 @@ tromino_algo(int x_min, int y_min, int x_max, int y_max, int x_mis, int y_mis, i
 	tromino_algo(x_cent, y_cent, x_max, y_max, x22_miss, y22_miss, size/2, m_size, M);
 }
 
+/*
+	This method checks whether a method contains only digits (0-9).
+*/
 int
 is_number(char *pt){
 	return (strspn(pt, "0123456789") == strlen(pt));

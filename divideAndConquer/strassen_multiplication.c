@@ -253,46 +253,76 @@ equal(int size, int A[][size], int B[][size]) {
 }
 
 /*
+	This method checks whether a method contains only digits (0-9).
+*/
+int
+is_number(char *pt){
+	return (strspn(pt, "0123456789") == strlen(pt));
+}
+
+/*
+	This method validates the input.
+	It performs following validations :
+	1. Validate if input is a valid number i.e if it contains only digits (0-9).
+	2. Validate if input number = 2^k where k is positive integer.
+	Returns -
+	1 if input satisfies above conditions.
+	0 otherwise.
+*/
+int
+validate_input(char *ip){
+	int n = 0;
+	if(!is_number(ip)){
+		printf("\n Invalid value. Please enter an integer value (n = 2^k, k > 0) !!");
+		return 0;
+	}
+	n = atoi(ip);
+	if(((n < 2) || (n & (n - 1)))){
+		printf("\n Please enter a valid number !! (n = 2^k, k > 0)");
+		return 0;
+	}
+	return 1;
+}
+
+
+/*
 	Main method.
 */
 int main(){
 	srand (time(NULL));
 	int n;
+	char ip[10];
 	
 	// Taking an input from the user for the value of n.
 	printf("\n Please enter a value of n : ");
-	scanf("%d",&n);
-
-	// validate if n = 2^k where k is positive integer.
-	if(((n == 1) || (n & (n - 1)))){
-		printf("\n Please enter a valid number !! (n = 2^k, k > 0)");
-		printf("\n\n");
-		return 1;
-	}
+	scanf("%s",ip);
 	
-	int A[n][n];
-	int B[n][n];
-	int R1[n][n];
-	int R2[n][n];
+	if(validate_input(ip)){
+		n = atoi(ip);
+		int A[n][n];
+		int B[n][n];
+		int R1[n][n];
+		int R2[n][n];
 
-	// Populating matrices A and B with random numbers between -10 and 10.
-	randomize_matrix(n, A);
-	randomize_matrix(n, B);
+		// Populating matrices A and B with random numbers between -10 and 10.
+		randomize_matrix(n, A);
+		randomize_matrix(n, B);
 	
-	printf("\n Matrix A is : ");
-	display_matrix(n, A);
-	printf("\n\n Matrix B is : ");
-	display_matrix(n, B);
+		printf("\n Matrix A is : ");
+		display_matrix(n, A);
+		printf("\n\n Matrix B is : ");
+		display_matrix(n, B);
 
-	// apply strassen's algorithm.
-	strassen_algorithm(n, A, B, R1);
+		// apply strassen's algorithm.
+		strassen_algorithm(n, A, B, R1);
 	
-	// apply standard matrix multiplication algorithm.
-	brute_force_algo(n, A, B, R2);
+		// apply standard matrix multiplication algorithm.
+		brute_force_algo(n, A, B, R2);
 
-	if(equal(n, R1,R2)){
-		printf("\n\n Resultant matrix R is : ");
-		display_matrix(n, R1);
+		if(equal(n, R1,R2)){
+			printf("\n\n Resultant matrix R is : ");
+			display_matrix(n, R1);
+		}
 	}
 	printf("\n\n");
 	return 0;
