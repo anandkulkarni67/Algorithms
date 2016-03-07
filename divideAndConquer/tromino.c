@@ -2,20 +2,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <string.h>
 
 int no = 1;
 
-void 
-randomize_matrix(int size, int A[][size]) {
-	int i = 0;
-	int j = 0;
-	for(i = 0;i < size;i++) {
-		for(j=0;j < size;j++) {
-			A[i][j] = rand() % 21 + (-10);
-		}
-	}
-}
-
+/*
+	This method generates a random value between 0 and the given input number (inclusive).
+	Returns -
+	random value.
+*/
 int
 generate_random_value(int range){
 	int val = 0;
@@ -23,6 +18,9 @@ generate_random_value(int range){
 	return val;
 }
 
+/*
+	This method displays the matrix on terminal. It prints 'X' where a hole is placed.
+*/
 void
 display_matrix(int size, int W[][size]){
 	int i = 0;
@@ -31,11 +29,18 @@ display_matrix(int size, int W[][size]){
 	for(i=0;i < size;i++){
 		printf("\n");
 		for(j=0; j < size; j++){
-			printf(" %d ", W[i][j]);
+			if(W[i][j] == -1){
+				printf("%5c",'X');
+			}else {
+				printf("%5d", W[i][j]);
+			}
 		}
 	}
 }
 
+/*
+	Tromino algorithm implementation.
+*/
 void
 tromino_algo(int x_min, int y_min, int x_max, int y_max, int x_mis, int y_mis, int size,int m_size, int M[][m_size]){
 	//printf("\n\nx_min : %d, y_min : %d, x_max : %d, y_max : %d",x_min, y_min, x_max, y_max);
@@ -140,22 +145,60 @@ tromino_algo(int x_min, int y_min, int x_max, int y_max, int x_mis, int y_mis, i
 	tromino_algo(x_cent, y_cent, x_max, y_max, x22_miss, y22_miss, size/2, m_size, M);
 }
 
+int
+is_number(char *pt){
+	return (strspn(pt, "0123456789") == strlen(pt));
+}
+
+/*
+	This method validates the input.
+	It performs following validations :
+	1. Validate if input is a valid number i.e if it contains only digits (0-9).
+	2. Validate if input is not equal to 0.
+	Returns -
+	1 if input satisfies above conditions.
+	0 otherwise.
+*/
+int
+validate_input(char *ip){
+	int k = 0;
+	if(!is_number(ip)){
+		printf("\n Invalid value. Please enter an integer value (k > 0) !!");
+		return 0;
+	}
+	k = atoi(ip);
+	if(k == 0){
+		printf("\n Invalid value. Please enter an integer value greater than 0 !!");		
+		return 0;
+	}
+	return 1;
+}
+
+/*
+	Main method.
+*/
+int
 main()
 {
 	srand(time(NULL));
 	int k = 0, size = 0, x_mis = 0, y_mis = 0;
-	printf("\nPlease enter the value of k : ");
-	scanf("%d",&k);
-	size = pow(2,k);
-	int M[size][size];
-	x_mis = generate_random_value(size);
-	y_mis = generate_random_value(size);
-	printf("\n x_mis : %d",x_mis);
-	printf("\n y_mis : %d",y_mis);
-	M[x_mis][y_mis] = -1;
-	tromino_algo(0, 0, size, size, x_mis, y_mis, size, size, M);
-	printf("\n\n Final matrix is : ");
-	display_matrix(size, M);
+	char ip[10];
+	printf("\n Please enter a value of k (k > 0) : ");
+	scanf("%s",ip);
+	if(validate_input(ip)) {
+		k = atoi(ip);
+		size = pow(2, k);
+		// create matrix of size 2^k * 2^k
+		int M[size][size];
+		// generate random co-ordinates as co-ordinates of a hole.
+		x_mis = generate_random_value(size);
+		y_mis = generate_random_value(size);
+		printf("\n Co-ordinates of a hole are : [%d, %d]",x_mis, y_mis);
+		M[x_mis][y_mis] = -1;
+		tromino_algo(0, 0, size, size, x_mis, y_mis, size, size, M);
+		printf("\n\n Tiling of the board with trominos : ");
+		display_matrix(size, M);
+	}
 	printf("\n\n");
 	return 0;
 }
