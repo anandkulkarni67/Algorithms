@@ -202,10 +202,6 @@ int main(int argc,char **argv){
 				int P[no_nodes][no_nodes];			
 				display_array(no_nodes, W);
 				floyd_algorithm(no_nodes, W, D, P);
-				printf("\n");
-				display_array(no_nodes, D);
-				printf("\n");
-				display_array(no_nodes, P);
 				do{
 					printf("\n\n Please enter a starting vertex (1...N) : ");
 					scanf("%s", v1);
