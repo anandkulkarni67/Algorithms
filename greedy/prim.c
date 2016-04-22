@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include <string.h>
-
+#define infinity 999
 
 /*
 	This method is used to display the contents of 2D array.
@@ -13,21 +13,7 @@ display_array(int size, int W[][size]){
 	for(i=0;i<size; i++){
 		printf("\n");
 		for(j=0; j<size; j++){
-			printf("%d ", W[i][j]);
-		}
-	}
-}
-
-/*
-	This method copies all elements from one array to another.
-*/
-void
-copy_array(int size, int W[][size], int D[][size]){
-	int i = 1;
-	int j = 1;
-	for(i=0;i<size; i++){
-		for(j=0; j<size; j++){
-			D[i][j] = W[i][j];
+			printf("%5d ", W[i][j]);
 		}
 	}
 }
@@ -41,7 +27,7 @@ initialize_array(int size, int W[][size]){
 	int j = 1;
 	for(i=0;i<size; i++){
 		for(j=0; j<size; j++){
-			W[i][j] = -1;
+			W[i][j] = 0;
 		}
 	}
 }
@@ -61,7 +47,7 @@ is_number(char *pt){
 	This method calculates number of nodes in adjacency matrix by counting number of lines present in input file.
 */
 int
-fetch_no_nodes(char *filename){
+fetch_no_vertices(char *filename){
 	int count = 0;
 	char ch;
 	FILE *fp = fopen(filename, "r");
@@ -84,13 +70,13 @@ fetch_no_nodes(char *filename){
 	3. Validate if value at every index is <= 500 because 500 is considered as infinity.
 */
 int
-read_W_matrix(char *filename, int size, int W[][size]){
+read_graph(char *filename, int size, int G[][size]){
 	char *pt, *line;
 	size_t len = 0;
 	ssize_t read;
 	int i = 0, j = 0;
 	FILE *fp = fopen(filename, "r");
-	initialize_array(size, W);
+	initialize_array(size, G);
 	while ((read = getline(&line, &len, fp)) != -1) {
 		pt = strtok (line,",");
 		j = 0;
@@ -103,13 +89,11 @@ read_W_matrix(char *filename, int size, int W[][size]){
 			if(is_number(pt) && strlen(pt)) {
 			        int a = atoi(pt);
 				// checks whether the read value is less than or equal to 500.
-				if(a <= 500){
-					W[i][j] = a;
+				if(a <= infinity){
+					G[i][j] = a;
 					j++;
 					pt = strtok (NULL, ",");
 				}else {
-					printf("\n Invalid Input. please enter weights <= 500. Weight = 500 is considered as infinity !!");
-					fclose(fp);
 					return 0;
 				}
 			} else {
@@ -151,84 +135,88 @@ validate_command_line_arguments(int argc, char **argv){
 	return 1;
 }
 
-
 /*
-	This method is used to find and display shortest path between two nodes.
+	This method is used to display all edges of a minimum spanning tree.
 */
-void path(int size, int P[][size],int q,int r){
-	if (P[q][r]!=-1){
-	             path(size, P, q, P[q][r]);
-	             printf(" v%d ", P[q][r] + 1);
-	             path(size, P, P[q][r], r);
+void
+display_mst(int size, int *parent, int graph[size][size])
+{
+	int i = 0;
+	printf("\n Minimum Spanning Tree :");
+	for (i = 1; i < size; i++) {
+		printf("\n edge %d,%d", parent[i] + 1, i + 1);
 	}
 }
 
 /*
-	This method contains the implementation of floyd algorithm.
+	This method is used to find the minimum entry from the array of entries.
+*/
+int
+get_minimum(int size, int *queue, int *mst_set)
+{
+	int min = infinity, min_index;
+	int i = 0;
+	for (i = 0; i < size; i++) {
+		if (mst_set[i] == 0 && queue[i] < min) {
+			 min = queue[i];
+			 min_index = i;
+		}
+	}
+	return min_index;
+}
+
+/*
+	This method contains the implementation of Prim's algorithm.
 */
 void
-floyd_algorithm(int size, int W[][size], int D[][size], int P[][size]){
-	int i= 0, j = 0, k = 0;
-	copy_array(size, W, D);
-	initialize_array(size, P);	
-	for(k = 0; k<size; k++){
-		for(i = 0; i<size; i++){
-			for(j = 0; j<size; j++){
-				if(D[i][j] > (D[i][k] + D[k][j])){
-					D[i][j] = (D[i][k] + D[k][j]);
-					P[i][j] = k;
-				}
+prims_algorithm(int size, int graph[][size]){
+	// This array stores the Minimum spanning tree
+	int parent[size];
+	int queue[size];
+	// This array is used to represent set of vertices not yet included in MST
+	int mst_set[size];  
+ 	int i = 0, count = 0, v = 0;
+	// Initialize all entries from the queue to infinite.
+	for (i = 0; i < size; i++) {
+		queue[i] = infinity;
+		mst_set[i] = 0;
+	}
+ 
+	// Starting with the first vertex.
+	queue[0] = 0;
+	parent[0] = -1;
+
+	// The MST will have V vertices
+	for (count = 0; count < size-1; count++)
+	{
+		// Pick minimum vertex which is not included in the minimum spanning tree yet.
+		int u = get_minimum(size, queue, mst_set);
+		mst_set[u] = 1;
+		for (v = 0; v < size; v++) {
+			// Update the queue only if graph[u][v] is smaller than queue[v]
+			if (graph[u][v] && mst_set[v] == 0 && graph[u][v] <  queue[v]) {
+				parent[v] = u;
+				queue[v] = graph[u][v];
 			}
 		}
 	}
+	display_mst(size, parent, graph);
 }
 
 /*
 	Main method.
 */
 int main(int argc,char **argv){
-	int infinity = 500;
-	int i= 0, j = 0, k = 0, no_nodes = 0, v1_i = 0, v2_i = 0;
-	char v1[3], v2[3];
+	int i= 0, j = 0, k = 0, no_vertices = 0, v1_i = 0, v2_i = 0;
 	char choice;
 	if(validate_command_line_arguments(argc, argv)) {
-		// checks if file is empty.
-		if(!(no_nodes = fetch_no_nodes(argv[1]))) {
-			printf("\n File is empty or error occured while reading a input !!");
+		// checks if a file is empty.
+		if(!(no_vertices = fetch_no_vertices(argv[1]))) {
+			printf("\n File is empty or error occured while reading an input !!");
 		}else {
-			int W[no_nodes][no_nodes];
-			if(read_W_matrix(argv[1], no_nodes, W)) {
-				int D[no_nodes][no_nodes];
-				int P[no_nodes][no_nodes];
-				floyd_algorithm(no_nodes, W, D, P);
-				printf("\n");			
-				display_array(no_nodes, D);
-				printf("\n");
-				display_array(no_nodes, P);
-				do{
-					printf("\n\n Please enter a starting vertex (1...N) : ");
-					scanf("%s", v1);
-					printf("\n Please enter an ending vertex (1...N) : ");
-					scanf("%s", v2);
-					// validates if the given input is a number.
-					if(!(is_number(v1) && is_number(v2))) {
-						printf("\n Please enter valid integer values of vertices !! (1..N, where N = total number of nodes in a graph.)");	
-					}else {
-						v1_i = atoi(v1);
-						v2_i = atoi(v2);
-						// validates if the given input is within appropriate range.
-						if(!(v1_i > 0 && v1_i <= no_nodes) || !(v2_i > 0 && v2_i <= no_nodes)){
-							printf("\n Please enter valid values of vertices !! (1..N, where N = total number of nodes in a graph.)");	
-						} else {
-							printf("\n Shortest path between v%d and v%d is : ", atoi(v1), atoi(v2));
-							printf(" v%d ", v1_i);
-							path(no_nodes, P, (v1_i - 1), (v2_i - 1));
-							printf(" v%d ", v2_i);
-						}
-					}
-					printf("\n\n Do you want to continue ? (press 'y'/'Y' to continue or any other key to quit.) : ");
-					scanf(" %c", &choice);
-				}while((choice == 'y' || choice == 'Y'));				
+			int graph[no_vertices][no_vertices];
+			if(read_graph(argv[1], no_vertices, graph)) {
+				prims_algorithm(no_vertices, graph);
 			}
 		}
 	}
